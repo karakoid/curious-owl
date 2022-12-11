@@ -27,12 +27,12 @@ function draw() {
 
     movePlayer();
 
-    const trailCycle = getTrailCycle();
-    if (trailCycle) {
-        console.log(trailCycle);
-        // console.log(getTrailUntilTurn(trailCycle, 0));
-        console.log(splitTrailCycleIntoTurns(trailCycle));
-    }
+    // const trailCycle = getTrailCycle();
+    // if (trailCycle) {
+    //     console.log(trailCycle);
+    //     // console.log(getTrailUntilTurn(trailCycle, 0));
+    //     console.log(splitTrailCycleIntoTurns(trailCycle));
+    // }
 
     player.draw();
 }
@@ -94,64 +94,6 @@ function isOutOfBounds(position) {
 ///////////////////////////////////////////////////////////////////////////////
 // АЛГОРИТМ ЗАКРАШИВАНИЯ ЦИКЛА
 
-// square
-// const testCycle = [
-//     { x: 0, y: 0 },
-//     { x: 1, y: 0 },
-//     { x: 2, y: 0 },
-//     { x: 2, y: 1 },
-//     { x: 1, y: 1 },
-//     { x: 0, y: 1 },
-//     { x: 0, y: 0 },
-// ];
-
-// complex trail
-// const testCycle = [
-//     { x: 0, y: 0 },
-//     { x: 1, y: 0 },
-//     { x: 1, y: 1 },
-//     { x: 2, y: 1 },
-//     { x: 3, y: 1 },
-//     { x: 4, y: 1 },
-//     { x: 4, y: 2 },
-//     { x: 3, y: 2 },
-//     { x: 3, y: 3 },
-//     { x: 2, y: 3 },
-//     { x: 2, y: 4 },
-//     { x: 1, y: 4 },
-//     { x: 1, y: 3 },
-//     { x: 0, y: 3 },
-//     { x: 0, y: 2 },
-//     { x: 0, y: 1 },
-//     { x: 0, y: 0 },
-// ];
-
-// console.log(splitTrailCycleIntoTurns(testCycle));
-
-// console.log(JSON.stringify(testCycle));
-
-// const first = getTrailUntilTurn(testCycle);
-// console.log(first);
-// testCycle.splice(0, first.length - 1);
-// console.log(JSON.stringify(testCycle));
-
-// const second = getTrailUntilTurn(testCycle);
-// console.log(second);
-// testCycle.splice(0, second.length - 1);
-// console.log(JSON.stringify(testCycle));
-
-// const third = getTrailUntilTurn(testCycle);
-// console.log(third);
-// testCycle.splice(0, third.length - 1);
-// console.log(JSON.stringify(testCycle));
-
-// const fourth = getTrailUntilTurn(testCycle);
-// console.log(fourth);
-// testCycle.splice(0, fourth.length - 1);
-// console.log(JSON.stringify(testCycle));
-
-// console.log(splitTrailCycleIntoTurns(testCycle));
-
 // searching for trail cycle
 function getTrailCycle() {
     const trail = player.getTrail();
@@ -169,7 +111,7 @@ function getTrailCycle() {
     return null;
 }
 
-// searching for a straight line until turn
+// receive a straight line before a turn
 function getTrailUntilTurn(remainingTrail) {
     const firstStep = remainingTrail[0];
     const secondStep = remainingTrail[1];
@@ -178,13 +120,11 @@ function getTrailUntilTurn(remainingTrail) {
         x: secondStep.x - firstStep.x,
         y: secondStep.y - firstStep.y,
     };
-    console.log(direction);
     const coordinateToCheck = !direction.x ? "x" : "y";
 
     const turnIndex = remainingTrail.findIndex(
         (step) => step[coordinateToCheck] !== firstStep[coordinateToCheck]
     );
-    console.log(turnIndex);
 
     if (turnIndex < 0) {
         return remainingTrail.splice(0);
@@ -193,7 +133,7 @@ function getTrailUntilTurn(remainingTrail) {
     return remainingTrail.slice(0, turnIndex);
 }
 
-// splitting a whole trail cycle into a sequence of turns
+// split trail cycle into a sequence of turns
 function splitTrailCycleIntoTurns(trailCycle) {
     const turns = [];
     while (trailCycle.length) {
@@ -204,3 +144,99 @@ function splitTrailCycleIntoTurns(trailCycle) {
 
     return turns;
 }
+
+// complex trail
+const testCycle = [
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 1, y: 1 },
+    { x: 2, y: 1 },
+    { x: 3, y: 1 },
+    { x: 4, y: 1 },
+    { x: 4, y: 2 },
+    { x: 3, y: 2 },
+    { x: 3, y: 3 },
+    { x: 2, y: 3 },
+    { x: 2, y: 4 },
+    { x: 1, y: 4 },
+    { x: 1, y: 3 },
+    { x: 0, y: 3 },
+    { x: 0, y: 2 },
+    { x: 0, y: 1 },
+    { x: 0, y: 0 },
+];
+
+const turns = splitTrailCycleIntoTurns(testCycle);
+console.log(turns);
+
+// find a rectangle to colour
+function findRectangleToColor(turns) {
+    const path = turns[0];
+
+    const firstStep = path[0];
+    const lastStep = path[path.length - 1];
+
+    console.log(firstStep, lastStep);
+
+    const direction = {
+        x: lastStep.x - firstStep.x,
+        y: lastStep.y - firstStep.y,
+    };
+    const coordinateToSave = !direction.x ? "y" : "x";
+    const coordinateToLose = !direction.x ? "x" : "y";
+
+    console.log(coordinateToSave);
+
+    let firstStepOppositeSide;
+    let lastStepOppositeSide;
+    for (let i = 0; i < turns.length; i++) {
+        if (!firstStepOppositeSide) {
+            const index = turns[i].findIndex(
+                (turn) => turn[coordinateToSave] === firstStep[coordinateToSave]
+            );
+
+            if (
+                index > -1 &&
+                turns[i][index][coordinateToLose] !==
+                    firstStep[coordinateToLose]
+            ) {
+                firstStepOppositeSide = turns[i][index];
+            }
+        }
+
+        if (!lastStepOppositeSide) {
+            const index = turns[i].findIndex(
+                (turn) => turn[coordinateToSave] === lastStep[coordinateToSave]
+            );
+
+            if (
+                index > -1 &&
+                turns[i][index][coordinateToLose] !== lastStep[coordinateToLose]
+            ) {
+                lastStepOppositeSide = turns[i][index];
+            }
+        }
+    }
+
+    console.log(firstStepOppositeSide, lastStepOppositeSide);
+
+    const minCoordinateToLose = Math.min(
+        firstStepOppositeSide[coordinateToLose],
+        lastStepOppositeSide[coordinateToLose]
+    );
+    console.log(minCoordinateToLose);
+
+    firstStepOppositeSide[coordinateToLose] = minCoordinateToLose;
+    lastStepOppositeSide[coordinateToLose] = minCoordinateToLose;
+
+    console.log(
+        firstStep,
+        lastStep,
+        firstStepOppositeSide,
+        lastStepOppositeSide
+    );
+
+    // format four coordinates to top left coordinate with width and height
+}
+
+findRectangleToColor(turns);
