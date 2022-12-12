@@ -169,74 +169,103 @@ const testCycle = [
 const turns = splitTrailCycleIntoTurns(testCycle);
 console.log(turns);
 
+// find point on the opposite side of the trail cycle
+function findOppositePoint(turns, point, coordinateToSave, coordinateToLose) {
+    for (let i = 0; i < turns.length; i++) {
+        const index = turns[i].findIndex(
+            (turn) => turn[coordinateToSave] === point[coordinateToSave]
+        );
+
+        if (
+            index > -1 &&
+            turns[i][index][coordinateToLose] !== point[coordinateToLose]
+        ) {
+            return turns[i][index];
+        }
+    }
+
+    return null;
+}
+
+// find top left coordinate out of a set of four coordinates which create a rectangle
+function findTopLeftPoint(pointSet) {
+    const minX = Math.min(...pointSet.map((point) => point.x));
+    const minY = Math.min(
+        ...pointSet.filter((point) => point.x === minX).map((point) => point.y)
+    );
+
+    return { x: minX, y: minY };
+}
+
+// assemble a proper rectangle from a set of points for the rectangle
+function fromPointSetToRect(topLeftPoint, pointSet) {
+    const width =
+        pointSet.find(
+            (point) => point.y === topLeftPoint.y && point.x !== topLeftPoint.x
+        ).x - topLeftPoint.x;
+    const height =
+        pointSet.find(
+            (point) => point.x === topLeftPoint.x && point.y !== topLeftPoint.y
+        ).y - topLeftPoint.y;
+
+    return {
+        topLeft: topLeftPoint,
+        width,
+        height,
+    };
+}
+
 // find a rectangle to colour
 function findRectangleToColor(turns) {
     const path = turns[0];
 
-    const firstStep = path[0];
-    const lastStep = path[path.length - 1];
-
-    console.log(firstStep, lastStep);
+    // find points that lie on the opposite side of the cycle
+    const startPoint = path[0];
+    const endPoint = path[path.length - 1];
 
     const direction = {
-        x: lastStep.x - firstStep.x,
-        y: lastStep.y - firstStep.y,
+        x: endPoint.x - startPoint.x,
+        y: endPoint.y - startPoint.y,
     };
-    const coordinateToSave = !direction.x ? "y" : "x";
-    const coordinateToLose = !direction.x ? "x" : "y";
+    const [coordinateToSave, coordinateToLose] = !direction.x
+        ? ["y", "x"]
+        : ["x", "y"];
 
-    console.log(coordinateToSave);
-
-    let firstStepOppositeSide;
-    let lastStepOppositeSide;
-    for (let i = 0; i < turns.length; i++) {
-        if (!firstStepOppositeSide) {
-            const index = turns[i].findIndex(
-                (turn) => turn[coordinateToSave] === firstStep[coordinateToSave]
-            );
-
-            if (
-                index > -1 &&
-                turns[i][index][coordinateToLose] !==
-                    firstStep[coordinateToLose]
-            ) {
-                firstStepOppositeSide = turns[i][index];
-            }
-        }
-
-        if (!lastStepOppositeSide) {
-            const index = turns[i].findIndex(
-                (turn) => turn[coordinateToSave] === lastStep[coordinateToSave]
-            );
-
-            if (
-                index > -1 &&
-                turns[i][index][coordinateToLose] !== lastStep[coordinateToLose]
-            ) {
-                lastStepOppositeSide = turns[i][index];
-            }
-        }
-    }
-
-    console.log(firstStepOppositeSide, lastStepOppositeSide);
-
-    const minCoordinateToLose = Math.min(
-        firstStepOppositeSide[coordinateToLose],
-        lastStepOppositeSide[coordinateToLose]
+    const startPointOpposite = findOppositePoint(
+        turns,
+        startPoint,
+        coordinateToSave,
+        coordinateToLose
     );
-    console.log(minCoordinateToLose);
-
-    firstStepOppositeSide[coordinateToLose] = minCoordinateToLose;
-    lastStepOppositeSide[coordinateToLose] = minCoordinateToLose;
-
-    console.log(
-        firstStep,
-        lastStep,
-        firstStepOppositeSide,
-        lastStepOppositeSide
+    const endPointOpposite = findOppositePoint(
+        turns,
+        endPoint,
+        coordinateToSave,
+        coordinateToLose
     );
 
-    // format four coordinates to top left coordinate with width and height
+    const coordinateToLoseMinValue = Math.min(
+        startPointOpposite[coordinateToLose],
+        endPointOpposite[coordinateToLose]
+    );
+
+    startPointOpposite[coordinateToLose] = coordinateToLoseMinValue;
+    endPointOpposite[coordinateToLose] = coordinateToLoseMinValue;
+
+    // find smallest coordinate out of a set of four creating a rectangle
+    const rectPoints = [
+        startPoint,
+        endPoint,
+        startPointOpposite,
+        endPointOpposite,
+    ];
+    const topLeftPoint = findTopLeftPoint(rectPoints);
+
+    // find width and height of a rectangle
+    const rect = fromPointSetToRect(topLeftPoint, rectPoints);
+
+    // color this rectangle
+    console.log(rect);
 }
 
 findRectangleToColor(turns);
